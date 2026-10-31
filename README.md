@@ -4,9 +4,17 @@ A local Claude account switcher. Choose an account for **official Claude Code in
 
 Mascot is an independent companion. It has no replacement chat, model API client, subscription proxy, token importer or automatic quota rotation.
 
+## Download and install
+
+- [Open VSX](https://open-vsx.org/extension/Mascot/mascot) — install `Mascot.mascot` from a compatible editor's extension registry.
+- [GitHub Releases](https://github.com/mahtifarahani/Mascot/releases/latest) — release notes, VSIX packages and checksums.
+- [Download VSIX v0.2.2](https://github.com/mahtifarahani/Mascot/releases/download/v0.2.2/mascot-0.2.2.vsix) — direct download for manual installation.
+
+For manual installation, open the editor's Command Palette, run **Extensions: Install from VSIX…** and select the downloaded file. Install the official Claude Code extension separately. This preview is validated on macOS Apple Silicon.
+
 ## Use
 
-Install `artifacts/mascot-0.2.2.vsix` and the official Claude Code extension. Open Mascot and add account labels.
+After installation, open Mascot and add account labels. Local builds produce `artifacts/mascot-0.2.2.vsix`.
 
 1. Select a label and click **Use account**.
 2. Stop and close existing Claude chats and background tools. Confirm **Switch and reload**.
