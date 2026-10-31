@@ -4,6 +4,17 @@ A local Claude account switcher. Choose an account for **official Claude Code in
 
 Mascot is an independent companion. It has no replacement chat, model API client, subscription proxy, token importer or automatic quota rotation.
 
+## Account safety by design
+
+**These exclusions are intentional: Mascot keeps a narrow scope to reduce account risk and leave authentication and chat with official Claude.**
+
+- No replacement chat, direct model API client or subscription proxy.
+- No reading, copying, importing, refreshing or migrating account tokens. Official Claude handles login and credentials.
+- No automatic account rotation, quota bypass or retries through another account when a limit is reached. You choose every switch.
+- No automatic prompt submission or conversation migration. Handoffs contain a summary you write and optional file references, which you review and submit manually.
+
+**Mascot cannot guarantee that your Claude account will never be restricted or banned.** These boundaries are design choices to reduce risk, not a guarantee of account safety or approval from Anthropic. Follow Anthropic's applicable terms and your organization's policies.
+
 ## Download and install
 
 - [Open VSX](https://open-vsx.org/extension/Mascot/mascot) — install `Mascot.mascot` from a compatible editor's extension registry.

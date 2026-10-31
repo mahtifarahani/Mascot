@@ -1,5 +1,9 @@
 # Mascot 0.2.2 implementation report
 
+## Account safety documentation
+
+README now explains that the absence of replacement chat, model API calls, subscription proxying, token handling, automatic quota rotation and automatic handoff submission is intentional to reduce account risk. It explicitly avoids promising protection from account restrictions or bans or claiming Anthropic approval. This is a documentation-only clarification; runtime behavior is unchanged. Validation: reviewed against the documented product boundaries and checked with `git diff --check`.
+
 ## Release automation
 
 Added `.github/workflows/release.yml`, `scripts/release-notes.mjs`, a dated changelog and `docs/release.md`. A matching version tag builds and checks the extension, creates a GitHub Release with VSIX/checksums, and publishes stable versions to Open VSX using OVSX_PAT. Prereleases stay on GitHub and Marketplace remains manual. This does not change runtime or account behavior. Chrome shows the existing registry version as Public, but the Mascot namespace remains unverified and cannot yet use trusted publishing. Secret setup and an end-to-end release remain pending; no successful registry CI publication is claimed.
