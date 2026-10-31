@@ -1,10 +1,10 @@
-# Mascot 0.2.0 implementation report
+# Mascot 0.2.1 implementation report
 
 Date: 2026-10-31.
 
 ## Result
 
-Mascot selects Claude accounts in the existing official Claude Code panel, or launches official Claude directly in a terminal. Editor selection, isolated editor setup, installers and new editor windows are absent from the current UI and CLI. Legacy account folders, ownership markers and internal IDs are retained. The earlier design is archived in `implementation-0.1.md`.
+Mascot selects Claude accounts in the existing official Claude Code panel, or launches official Claude directly in a terminal. Editor selection, isolated editor setup, installers and new editor windows are absent from the current UI and CLI. Existing account config folders are retained. All current extension, command, environment, executable and ownership identifiers use Mascot.
 
 ## Profile switching
 
@@ -12,7 +12,7 @@ Mascot selects Claude accounts in the existing official Claude Code panel, or la
 
 The settings port uses the native global Configuration API. The environment setting is machine-scoped and the continuation flag application-scoped in the inspected official manifest. Other windows sharing user settings can therefore be affected. The native confirmation asks users to stop/close existing chats and background tools before reloading the current window. Mascot cannot inspect or stop their running tools. A one-time pending intent opens official Claude after reload; it never submits a prompt or retries on later startups.
 
-`src/core/service.ts` prepares only an owned account's Claude settings and verifies its marker. It preserves existing profile paths and credentials, seeds autoInstallIdeExtension:false and refuses profile auth/provider environment overrides. Legacy editor setup helpers remain for compatibility/regression coverage; no current production request or CLI command routes to them.
+`src/core/service.ts` prepares only an owned account's Claude settings and verifies its marker. It preserves existing profile paths and credentials, seeds autoInstallIdeExtension:false and refuses profile auth/provider environment overrides. Editor setup helpers remain for regression coverage; no current production request or CLI command routes to them.
 
 `src/extension/extension.ts` opens the registered official chat command in the same window. Terminal actions use the official bundled executable directly, strict child environment and no login shell. `src/cli.ts` runs an installed official executable with inherited terminal IO. Neither path installs an editor or extension. No default Claude directory, shell startup file, token or Keychain item is accessed by Mascot.
 
@@ -30,4 +30,10 @@ The official documentation currently supports absolute CLAUDE_CONFIG_DIR in exte
 
 ## Completed validation and local deployment
 
-All 35 tests, TypeScript, build/package, direct-terminal CLI smoke and the packaged extension smoke passed. The terminal smoke used a fake executable and checked the selected directory, empty argv and filtering of a synthetic API key. Forty synthetic layout combinations across widths 220–900px had no horizontal overflow; the 320px account panel was visually inspected. Mascot 0.2.0 was installed into the user's existing Cursor under their explicit request and its registry version was verified. No real account login or selection was performed; official Claude and Claude Desktop were not updated.
+All 35 tests, TypeScript, build/package, direct-terminal CLI smoke and the packaged extension smoke passed. The terminal smoke used a fake executable and checked the selected directory, empty argv and filtering of a synthetic API key. Forty synthetic layout combinations across widths 220–900px had no horizontal overflow; the 320px account panel was visually inspected. Mascot 0.2.1 was installed into the user's existing Cursor under their explicit request and its registry version was verified. No real account login or selection was performed; official Claude and Claude Desktop were not updated.
+
+## Publication naming
+
+The user selected namespace Mascot and requested removal of the old product name throughout current project files. Public identity is Mascot.mascot, version 0.2.1. Runtime command/view/env names, ownership marker and CLI artifact use Mascot. The previous implementation archive was removed from the current tree. Historical Git commits are retained. Account configuration paths do not change. The earlier registry upload remains inactive and is not the intended public release. Previous preview extensions must be disabled before installing the new identity.
+
+The local owned-root marker was renamed after checking it with the previous Store, writing the new marker through that Store, and verifying unchanged account records with the current Store. A fake temporary-root rehearsal passed first. Both local account records and all config directories were preserved; no credential file was read. Mascot.mascot 0.2.1 replaced the earlier preview in the normal editor registry under the user's installation request.

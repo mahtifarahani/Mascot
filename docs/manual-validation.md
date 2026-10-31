@@ -6,7 +6,7 @@ Run pnpm check, pnpm test:cli, pnpm package and pnpm test:extension --packaged. 
 
 ## Official account workflow (manual)
 
-1. Note the existing Claude Desktop identity. Install Mascot 0.2.0 and ensure official Claude Code is already installed. Use a trusted harmless local project.
+1. Note the existing Claude Desktop identity. Install Mascot 0.2.1 and ensure official Claude Code is already installed. Use a trusted harmless local project.
 2. Add a label, select Use account and read the switch confirmation. Stop/close old Claude chats and background tools before confirming.
 3. Verify the same window reloads, a fresh official Claude chat opens, and no editor login or separate editor environment appears. Check the absolute selected profile under Account details.
 4. Verify a fresh profile's identity before logging in. If an unexpected existing identity appears, stop and investigate without logging out or replacing credentials.

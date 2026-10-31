@@ -1,9 +1,9 @@
 {
-  "name": "clawcoon",
+  "name": "mascot",
   "displayName": "Mascot",
   "description": "Switch Claude accounts in official Claude Code or the current terminal. Local profiles, manual switching, no editor environments.",
-  "version": "0.2.0",
-  "publisher": "clawcoon",
+  "version": "0.2.1",
+  "publisher": "Mascot",
   "private": true,
   "license": "UNLICENSED",
   "repository": {
@@ -19,8 +19,7 @@
   "main": "./dist/extension.cjs",
   "icon": "media/icon.png",
   "bin": {
-    "mascot": "dist/clawcoon.mjs",
-    "clawcoon": "dist/clawcoon.mjs"
+    "mascot": "dist/mascot.mjs"
   },
   "extensionKind": [
     "ui"
@@ -36,39 +35,39 @@
     "virtualWorkspaces": false
   },
   "activationEvents": [
-    "onView:clawcoon.accounts",
+    "onView:mascot.accounts",
     "onStartupFinished"
   ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "clawcoon",
+          "id": "mascot",
           "title": "Mascot",
           "icon": "media/mark.svg"
         }
       ]
     },
     "views": {
-      "clawcoon": [
+      "mascot": [
         {
           "type": "webview",
-          "id": "clawcoon.accounts",
+          "id": "mascot.accounts",
           "name": "Mascot"
         }
       ]
     },
     "commands": [
       {
-        "command": "clawcoon.open",
+        "command": "mascot.open",
         "title": "Mascot: Open Accounts"
       },
       {
-        "command": "clawcoon.openClaude",
+        "command": "mascot.openClaude",
         "title": "Mascot: Open Official Claude Chat"
       },
       {
-        "command": "clawcoon.usage",
+        "command": "mascot.usage",
         "title": "Mascot: Check Usage in Claude"
       }
     ]

@@ -6,7 +6,7 @@ Mascot is an independent companion. It has no replacement chat, model API client
 
 ## Use
 
-Install `artifacts/mascot-0.2.0.vsix` and the official Claude Code extension. Open Mascot and add account labels.
+Install `artifacts/mascot-0.2.1.vsix` and the official Claude Code extension. Open Mascot and add account labels.
 
 1. Select a label and click **Use account**.
 2. Stop and close existing Claude chats and background tools. Confirm **Switch and reload**.
@@ -29,11 +29,11 @@ This uses the documented [official extension environment setting](https://code.c
 Node.js 22+, macOS Apple Silicon for this preview:
 
 ```sh
-node dist/clawcoon.mjs accounts add "Personal"
-node dist/clawcoon.mjs accounts list
-node dist/clawcoon.mjs prepare ACCOUNT_UUID
-node dist/clawcoon.mjs run ACCOUNT_UUID /absolute/project
-node dist/clawcoon.mjs status ACCOUNT_UUID
+node dist/mascot.mjs accounts add "Personal"
+node dist/mascot.mjs accounts list
+node dist/mascot.mjs prepare ACCOUNT_UUID
+node dist/mascot.mjs run ACCOUNT_UUID /absolute/project
+node dist/mascot.mjs status ACCOUNT_UUID
 ```
 
 `--claude /absolute/executable` selects an installed official binary. Otherwise Mascot looks for an installed Claude executable. Nothing is downloaded. `--data-dir /absolute/empty/directory` chooses a private root. Removing an account deletes only its registry entry, with no logout or file cleanup.
@@ -54,4 +54,8 @@ pnpm test:extension --packaged
 
 Tests use temporary roots and fake data. The packaged extension test runs the real UI and settings API in temporary editor directories with an offline fake Claude extension. It tests switch/restore and same-window command routing, without real login or model requests. No automated test installs into normal apps.
 
-See [implementation](docs/implementation.md) and [manual validation](docs/manual-validation.md). The product uses the supplied orange raccoon identity, named Mascot; legacy internal IDs remain stable for existing accounts.
+See [implementation](docs/implementation.md) and [manual validation](docs/manual-validation.md). The product uses the supplied orange raccoon identity, named Mascot; all current product identifiers use Mascot.
+
+## Registry identity
+
+The Open VSX publisher namespace is `Mascot`; the extension ID is `Mascot.mascot`. Disable earlier preview extensions before installing this build to avoid duplicate account managers. Existing account config paths remain unchanged; no sign-ins are copied or migrated.

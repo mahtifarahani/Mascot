@@ -21,8 +21,8 @@ export function isolatedEnv(configDir: string, root: string, accountId: string, 
   for (const key of allowed) if (source[key]) env[key] = source[key];
   env.PATH = [...new Set([...(source.PATH ?? '').split(delimiter), join(homedir(), '.local/bin'), '/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin'].filter(Boolean))].join(delimiter);
   env.CLAUDE_CONFIG_DIR = configDir;
-  env.CLAWCOON_ROOT = root;
-  env.CLAWCOON_ACCOUNT_ID = accountId;
+  env.MASCOT_ROOT = root;
+  env.MASCOT_ACCOUNT_ID = accountId;
   return env;
 }
 

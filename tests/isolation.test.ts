@@ -31,7 +31,7 @@ describe('private storage boundary', () => {
   });
   it('rejects an ancestor alias into existing Claude locations before creating anything there', async () => {
     const alias = join(fixture, 'alias'); await symlink(homedir(), alias);
-    const redirected = new Store(join(alias, '.claude', 'clawcoon-must-not-create'));
+    const redirected = new Store(join(alias, '.claude', 'mascot-must-not-create'));
     await expect(redirected.add('Personal')).rejects.toThrow('existing application location');
   });
   it('refuses symlink directories and registry files inside the owned root', async () => {
@@ -72,7 +72,7 @@ type Call = { file: string; args: string[]; env: NodeJS.ProcessEnv; cwd: string 
 async function harness() {
   const account = await store.add('Personal');
   const assets = join(fixture, 'assets'); await mkdir(join(assets, 'bootstrap'), { recursive: true });
-  await writeFile(join(assets, 'bootstrap', 'clawcoon.vsix'), 'installer fixture');
+  await writeFile(join(assets, 'bootstrap', 'mascot.vsix'), 'installer fixture');
   const calls: Call[] = [];
   let service: Service;
   const runner: Runner = async (file, args, options) => {
@@ -80,9 +80,9 @@ async function harness() {
     if (args.includes('--install-extension')) {
       const extensions = args[args.indexOf('--extensions-dir') + 1];
       const own = args.at(-1)!.endsWith('.vsix');
-      const path = join(extensions, own ? 'clawcoon.clawcoon-0.1.0' : 'anthropic.claude-code-2.1.310-darwin-arm64');
+      const path = join(extensions, own ? 'mascot.mascot-0.1.0' : 'anthropic.claude-code-2.1.310-darwin-arm64');
       await mkdir(join(path, 'resources', 'native-binary'), { recursive: true });
-      await writeFile(join(path, 'package.json'), JSON.stringify({ publisher: own ? 'clawcoon' : 'Anthropic', name: own ? 'clawcoon' : 'claude-code', version: own ? '0.1.0' : '2.1.310' }));
+      await writeFile(join(path, 'package.json'), JSON.stringify({ publisher: own ? 'mascot' : 'Anthropic', name: own ? 'mascot' : 'claude-code', version: own ? '0.1.0' : '2.1.310' }));
       if (!own) await writeFile(join(path, 'resources', 'native-binary', 'claude'), 'official CLI fixture');
     }
     if (args[0] === 'auth') return { code: 0, stdout: JSON.stringify({ loggedIn: true, authMethod: 'claude.ai', email: 'fixture@example.test', configDirectory: service.paths(account.id, 'cursor').configDir, accessToken: 'must-never-be-returned' }) };
@@ -134,7 +134,7 @@ describe('official editor environments', () => {
     calls.length = 0;
     await service.setup(account.id, 'cursor');
     expect(calls.length).toBe(1);
-    expect(calls[0].args.at(-1)).toMatch(/clawcoon\.vsix$/);
+    expect(calls[0].args.at(-1)).toMatch(/mascot\.vsix$/);
     expect(calls[0].args).not.toContain('anthropic.claude-code');
   });
   it('keeps two accounts and two editors separate, without changing original app fixtures', async () => {
@@ -204,7 +204,7 @@ describe('official editor environments', () => {
   });
   it('does not install or create profile files if the companion archive is missing', async () => {
     const { service, account, calls, assets } = await harness();
-    await rm(join(assets, 'bootstrap', 'clawcoon.vsix'));
+    await rm(join(assets, 'bootstrap', 'mascot.vsix'));
     await expect(service.setup(account.id, 'cursor')).rejects.toThrow('archive is missing');
     expect(calls).toEqual([]);
     expect(await service.setupStatus(account.id, 'cursor')).toMatchObject({ prepared: false, officialInstalled: false });
@@ -212,8 +212,8 @@ describe('official editor environments', () => {
   it('can bootstrap the next account from an already isolated companion window', async () => {
     const { service, account, runner } = await harness();
     await service.setup(account.id, 'cursor');
-    const companion = await service.installed(account.id, 'cursor', 'clawcoon.clawcoon');
-    expect(await readFile(join(companion!, 'bootstrap', 'clawcoon.vsix'), 'utf8')).toBe('installer fixture');
+    const companion = await service.installed(account.id, 'cursor', 'mascot.mascot');
+    expect(await readFile(join(companion!, 'bootstrap', 'mascot.vsix'), 'utf8')).toBe('installer fixture');
     const next = await store.add('Next');
     const childService = new Service(store, companion!, runner, { cursor: process.execPath, vscode: process.execPath });
     await childService.setup(next.id, 'cursor');

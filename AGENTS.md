@@ -4,7 +4,7 @@ Read `README.md`, `docs/implementation.md` and `docs/manual-validation.md` befor
 
 ## Product boundary
 
-Mascot is a local account switcher for **official Claude Code chat**. It has no replacement chat, model API client, subscription proxy, quota rotation, or remote service. The product identity is Mascot. Keep legacy internal extension IDs, ownership markers, and environment variable names stable so existing isolated accounts remain compatible.
+Mascot is a local account switcher for **official Claude Code chat**. It has no replacement chat, model API client, subscription proxy, quota rotation, or remote service. The product identity is Mascot. The public namespace is Mascot and the extension ID is Mascot.mascot. Commands, environment keys, ownership metadata and executables use Mascot naming. Keep account configuration paths stable; never rename credential namespaces.
 
 ## Non-negotiable isolation
 
@@ -21,4 +21,4 @@ Mascot is a local account switcher for **official Claude Code chat**. It has no 
 
 `pnpm install`; `pnpm check`; `pnpm test:cli`; `pnpm package`; `pnpm test:extension --packaged`.
 
-The extension test starts installed VS Code with temporary user-data/extensions directories and an offline fake Claude extension. `artifacts/mascot-0.2.0.vsix` is the installable package; there is no bootstrap installation flow. Update the implementation report when behavior or validation changes. Do not overwrite unrelated local changes, including `.vscode` settings.
+The extension test starts installed VS Code with temporary user-data/extensions directories and an offline fake Claude extension. `artifacts/mascot-0.2.1.vsix` is the installable package; there is no bootstrap installation flow. Update the implementation report when behavior or validation changes. Do not overwrite unrelated local changes, including `.vscode` settings.

@@ -4,9 +4,9 @@ import { chmod, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-const temp = await mkdtemp(join(tmpdir(), 'clawcoon-cli-smoke-'));
+const temp = await mkdtemp(join(tmpdir(), 'mascot-cli-smoke-'));
 const root = join(temp, 'data');
-const executable = resolve('dist/clawcoon.mjs');
+const executable = resolve('dist/mascot.mjs');
 const invoke = args => JSON.parse(execFileSync(process.execPath, [executable, '--data-dir', root, ...args], { encoding: 'utf8' }));
 try {
   assert.deepEqual(invoke(['accounts', 'list']), []);

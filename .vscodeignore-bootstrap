@@ -4,6 +4,6 @@
 !LICENSE
 !media/**
 !dist/extension.cjs
-!dist/clawcoon.mjs
+!dist/mascot.mjs
 !dist/webview.js
 !dist/webview.css

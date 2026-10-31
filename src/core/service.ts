@@ -93,7 +93,7 @@ export class Service {
     return {
       editor, ...paths, prepared, available: await exists(this.editorPaths[editor]),
       officialInstalled: !!(await this.installed(id, editor, 'anthropic.claude-code')),
-      companionInstalled: !!(await this.installed(id, editor, 'clawcoon.clawcoon')),
+      companionInstalled: !!(await this.installed(id, editor, 'mascot.mascot')),
     };
   }
   private async ensureExecutable(editor: Editor): Promise<string> {
@@ -159,7 +159,7 @@ export class Service {
   }
   async setup(id: string, editor: Editor): Promise<void> {
     const executable = await this.ensureExecutable(editor);
-    const vsix = join(this.assets, 'bootstrap', 'clawcoon.vsix');
+    const vsix = join(this.assets, 'bootstrap', 'mascot.vsix');
     if (!(await exists(vsix))) throw new Error('The installer archive is missing. Build a release with pnpm package, then install artifacts/mascot-0.1.6.vsix.');
     await this.prepare(id, editor);
     const paths = this.paths(id, editor);
@@ -173,8 +173,8 @@ export class Service {
     if (!status.officialInstalled || !status.companionInstalled) throw new Error('Setup did not find both extensions in the isolated directory. Open is blocked.');
     // The small bootstrap package intentionally does not contain itself. Supply its
     // installer as an owned sidecar, so this new account window can set up further accounts.
-    const companion = await this.installed(id, editor, 'clawcoon.clawcoon');
-    await this.store.writeBytes(join(companion!, 'bootstrap', 'clawcoon.vsix'), await readFile(vsix));
+    const companion = await this.installed(id, editor, 'mascot.mascot');
+    await this.store.writeBytes(join(companion!, 'bootstrap', 'mascot.vsix'), await readFile(vsix));
   }
   async launch(id: string, editor: Editor, folder?: string, handoffId?: string): Promise<void> {
     const executable = await this.ensureExecutable(editor);

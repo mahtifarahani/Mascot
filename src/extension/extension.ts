@@ -42,8 +42,8 @@ class AccountsPanel implements vscode.WebviewViewProvider {
   private resolveReady?: () => void;
   private readonly ready = new Promise<void>(resolve => { this.resolveReady = resolve; });
   constructor(private readonly context: vscode.ExtensionContext) {
-    const testRoot = context.extensionMode !== vscode.ExtensionMode.Production ? process.env.CLAWCOON_TEST_ROOT : undefined;
-    this.store = new Store(testRoot ?? process.env.CLAWCOON_ROOT ?? DEFAULT_ROOT);
+    const testRoot = context.extensionMode !== vscode.ExtensionMode.Production ? process.env.MASCOT_TEST_ROOT : undefined;
+    this.store = new Store(testRoot ?? process.env.MASCOT_ROOT ?? DEFAULT_ROOT);
     this.service = new Service(this.store, context.extensionUri.fsPath);
     this.binding = new Binding(this.store, createClaudeSettingsPort(), context.globalStorageUri.fsPath);
   }
@@ -225,11 +225,11 @@ class AccountsPanel implements vscode.WebviewViewProvider {
 
 export function activate(context: vscode.ExtensionContext): { refresh(): Promise<void>; waitForPanelReady(): Promise<void> } {
   const panel = new AccountsPanel(context);
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider('clawcoon.accounts', panel));
-  context.subscriptions.push(vscode.commands.registerCommand('clawcoon.open', () => vscode.commands.executeCommand('clawcoon.accounts.focus')));
+  context.subscriptions.push(vscode.window.registerWebviewViewProvider('mascot.accounts', panel));
+  context.subscriptions.push(vscode.commands.registerCommand('mascot.open', () => vscode.commands.executeCommand('mascot.accounts.focus')));
   const safeOpen = async (usage: boolean) => { try { await panel.openClaude(usage); } catch (e) { void vscode.window.showErrorMessage(e instanceof Error ? e.message : 'Could not open Claude.'); } };
-  context.subscriptions.push(vscode.commands.registerCommand('clawcoon.openClaude', () => safeOpen(false)));
-  context.subscriptions.push(vscode.commands.registerCommand('clawcoon.usage', () => safeOpen(true)));
+  context.subscriptions.push(vscode.commands.registerCommand('mascot.openClaude', () => safeOpen(false)));
+  context.subscriptions.push(vscode.commands.registerCommand('mascot.usage', () => safeOpen(true)));
   context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(() => panel.publish()));
   void panel.finishPendingSwitch();
   return { refresh: () => panel.publish(), waitForPanelReady: () => panel.waitForPanelReady() };

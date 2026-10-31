@@ -7,7 +7,7 @@ import { Account, AccountId } from '../protocol';
 
 const Registry = z.object({ version: z.literal(1), accounts: z.array(Account).max(20) });
 export const DEFAULT_ROOT = join(homedir(), '.mascot');
-const MARKER = '.clawcoon-owned.json';
+const MARKER = '.mascot-owned.json';
 function protectedLocation(path: string): boolean {
   const forbidden = [homedir(), '/', '/Applications', join(homedir(), '.claude'), join(homedir(), '.cursor'), join(homedir(), '.vscode'), join(homedir(), 'Library')];
   return forbidden.some(p => path === p || (p !== homedir() && p !== '/' && path.startsWith(p + '/')));
@@ -59,12 +59,12 @@ export class Store {
     if (!(await exists(marker))) {
       const entries = await readdir(this.root);
       if (!create || entries.length) throw new Error('This folder is not owned by Mascot. Existing files will not be adopted or changed.');
-      await writeFile(marker, JSON.stringify({ owner: 'clawcoon', version: 1 }), { flag: 'wx', mode: 0o600 });
+      await writeFile(marker, JSON.stringify({ owner: 'mascot', version: 1 }), { flag: 'wx', mode: 0o600 });
       await chmod(this.root, 0o700);
     }
     let value;
     try { value = JSON.parse(await readFile(marker, 'utf8')); } catch { throw new Error('The Mascot ownership marker is invalid. No existing file was changed.'); }
-    if (value.owner !== 'clawcoon' || value.version !== 1) throw new Error('Invalid Mascot ownership marker.');
+    if (value.owner !== 'mascot' || value.version !== 1) throw new Error('Invalid Mascot ownership marker.');
     return true;
   }
   async directory(...parts: string[]): Promise<string> {
