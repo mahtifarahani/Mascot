@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -20,7 +20,14 @@ try {
   const handoff = invoke(['handoff', 'create', account.id, temp, '--draft', draft]);
   assert.equal(handoff.title, 'CLI handoff');
   assert.equal(invoke(['handoff', 'list'])[0].id, handoff.id);
+  const fake = join(temp, 'offline-claude');
+  await writeFile(fake, '#!' + process.execPath + '\nconsole.log(JSON.stringify({directory:process.env.CLAUDE_CONFIG_DIR, leaked:!!process.env.ANTHROPIC_API_KEY, args:process.argv.slice(2)}));\n');
+  await chmod(fake, 0o700);
+  const launched = JSON.parse(execFileSync(process.execPath, [executable, '--data-dir', root, '--claude', fake, 'run', account.id, temp], { encoding: 'utf8', env: { ...process.env, ANTHROPIC_API_KEY: 'synthetic-test-only' } }));
+  assert.equal(launched.directory, join(root, 'accounts', account.id, 'claude'));
+  assert.equal(launched.leaked, false);
+  assert.deepEqual(launched.args, []);
   assert.equal(invoke(['accounts', 'remove', account.id]).profileDataKept, true);
   assert.deepEqual(invoke(['accounts', 'list']), []);
-  console.log('CLI smoke passed: private registry CRUD and handoff create/list; no install, login, editor launch or model request.');
+  console.log('CLI smoke passed: registry, handoffs and direct terminal routing with an offline fake executable; no login or model request.');
 } finally { await rm(temp, { recursive: true, force: true }); }

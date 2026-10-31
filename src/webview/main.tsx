@@ -20,10 +20,6 @@ function Icon({ name, size = 16 }: { name: 'arrow' | 'plus' | 'refresh' | 'folde
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function ready(account: AccountView): boolean {
-  return account.setup.prepared && account.setup.officialInstalled && account.setup.companionInstalled;
-}
-
 function App() {
   const [snapshot, setSnapshot] = useState<Snapshot>();
   const [fatal, setFatal] = useState('');
@@ -49,7 +45,7 @@ function App() {
   const selected = accounts.find(a => a.id === selectedId) ?? accounts.find(a => a.current) ?? accounts[0];
   const busy = !!snapshot?.busy;
   const disabled = busy || !snapshot?.trusted;
-  const currentSelected = !!selected?.current && !!snapshot?.managed;
+  const currentSelected = !!selected?.current;
   const addAccount = () => {
     if (!name.trim()) return;
     send({ type: 'add', name: name.trim() });
@@ -59,7 +55,7 @@ function App() {
 
   return <main>
     <header className="brand">
-      <div className="brand-lockup"><img src={brand} alt="Mascot" /><div><h1>Mascot</h1>{snapshot && <p>Running in {snapshot.editor === 'cursor' ? 'Cursor' : 'VS Code'}</p>}</div></div>
+      <div className="brand-lockup"><img src={brand} alt="Mascot" /><div><h1>Mascot</h1>{snapshot && <p>Claude accounts</p>}</div></div>
       <button className="icon-button" title="Refresh account list" aria-label="Refresh account list" disabled={busy} onClick={() => send({ type: 'refresh' })}><Icon name="refresh" /></button>
     </header>
     <nav aria-label="Main navigation">
@@ -83,7 +79,7 @@ function App() {
         </form>}
 
         {!accounts.length && !adding && <div className="empty-state">
-          <h2>Add your first account</h2><p>Each account gets its own editor window.</p>
+          <h2>Add your first account</h2><p>Choose which account Claude uses.</p>
           <button className="primary" disabled={disabled} onClick={showAdd}><Icon name="plus" /> Add account</button>
         </div>}
 
@@ -95,16 +91,16 @@ function App() {
           onClick={() => { setSelectedId(account.id); setRenaming(false); }}
         >
           <span className={`avatar avatar-${i % 4}`}>{account.name.charAt(0).toUpperCase()}</span>
-          <span className="account-info"><strong>{account.name}</strong><span>{account.auth.email ?? (account.auth.state === 'signed-out' ? 'Sign in with Claude' : ready(account) ? 'Ready to open' : 'Setup required')}</span></span>
+          <span className="account-info"><strong>{account.name}</strong><span>{account.auth.email ?? (account.auth.state === 'signed-out' ? 'Sign in with Claude' : account.current ? 'Selected for Claude' : 'Not checked')}</span></span>
           {account.current && <span className="current-label">Current</span>}
         </button>)}</div>
 
         {selected && <div className="account-actions" key={selected.id}>
-          {!ready(selected) ? <button className="primary full" disabled={disabled || !selected.setup.available} onClick={() => send({ type: 'setup', id: selected.id })}>Set up account<Icon name="arrow" /></button>
-            : currentSelected ? <button className="primary full" disabled={disabled} onClick={() => send({ type: 'claude' })}>Open Claude<Icon name="arrow" /></button>
-              : <button className="primary full" disabled={disabled} onClick={() => send({ type: 'launch', id: selected.id })}>Open account<Icon name="arrow" /></button>}
-          {!selected.setup.available && <p className="hint">The editor’s launcher was not found in /Applications.</p>}
-          {currentSelected && <button className="text-button usage-button" disabled={disabled} onClick={() => send({ type: 'usage' })}>Check usage ↗</button>}
+          {currentSelected ? <button className="primary full" disabled={disabled || !snapshot.officialAvailable} onClick={() => send({ type: 'claude' })}>Open Claude<Icon name="arrow" /></button>
+            : <button className="primary full" disabled={disabled || !snapshot.officialAvailable} onClick={() => send({ type: 'switch', id: selected.id })}>Use account<Icon name="arrow" /></button>}
+          {!snapshot.officialAvailable && <p className="hint">Install the official Claude Code extension to continue.</p>}
+          <div className="quick-actions"><button className="text-button" disabled={disabled || !snapshot.officialAvailable} onClick={() => send({ type: 'terminal', id: selected.id })}>Open terminal</button>
+          {currentSelected && <button className="text-button" disabled={disabled || !snapshot.officialAvailable} onClick={() => send({ type: 'usage' })}>Check usage ↗</button>}</div>
 
           <details className="account-details">
             <summary>Account details</summary>
@@ -112,19 +108,19 @@ function App() {
               <div className="detail-heading"><h3>{selected.name}</h3><button className="text-button" disabled={disabled} onClick={() => { setRenaming(!renaming); setName(selected.name); }}>Rename</button></div>
               {renaming && <form className="inline-form" onSubmit={e => { e.preventDefault(); send({ type: 'rename', id: selected.id, name }); setRenaming(false); }}><label htmlFor="rename-name">Account name</label><div className="input-action"><input id="rename-name" value={name} maxLength={60} onChange={e => setName(e.target.value)} required /><button className="primary" type="submit" disabled={disabled || !name.trim()}>Save</button></div></form>}
               <AccountDetails account={selected} />
-              <button className="secondary full" disabled={disabled || !selected.setup.officialInstalled} onClick={() => send({ type: 'auth', id: selected.id })}>Check sign-in</button>
+              <button className="secondary full" disabled={disabled || !snapshot.officialAvailable || !selected.profileReady} onClick={() => send({ type: 'auth', id: selected.id })}>Check sign-in</button>
               {selected.auth.message && <p className="hint">{selected.auth.message}</p>}
               {selected.auth.checkedAt && <p className="hint">Checked {new Date(selected.auth.checkedAt).toLocaleString()}</p>}
-              {currentSelected && <button className="text-button detail-link" disabled={disabled} onClick={() => send({ type: 'launch', id: selected.id })}>Open another window ↗</button>}
-              <details className="paths"><summary>Folders</summary><dl><dt>Claude</dt><dd>{selected.setup.configDir}</dd><dt>Editor</dt><dd>{selected.setup.dataDir}</dd><dt>Extensions</dt><dd>{selected.setup.extensionsDir}</dd></dl></details>
+              <details className="paths"><summary>Folders</summary><dl><dt>Claude profile</dt><dd>{selected.configDir}</dd></dl></details>
               <button className="text-button remove" disabled={disabled || selected.current} title="Remove the label only. Account files are kept." onClick={() => send({ type: 'remove', id: selected.id })}>Remove from list</button>
             </div>
           </details>
         </div>}
+        {snapshot.canRestore && <button className="text-button restore-button" disabled={disabled} onClick={() => send({ type: 'restore' })}>Use previous Claude profile</button>}
       </section> : <section className="handoffs-content" aria-label="Task handoffs">
         {!newHandoff ? <>
           {snapshot.handoffs.length > 0 ? <div className="section-toolbar"><span>Saved handoffs</span><button className="secondary new-handoff" disabled={disabled || !selected} onClick={() => setNewHandoff(true)}><Icon name="plus" size={14} /> New</button></div> : <div className="empty-state"><h2>Continue in another account</h2><p>Save a short summary for the next session.</p>{selected ? <button className="primary new-handoff" disabled={disabled} onClick={() => setNewHandoff(true)}><Icon name="plus" /> New handoff</button> : <button className="secondary" disabled={disabled} onClick={showAdd}>Add an account first</button>}</div>}
-          <div className="saved-handoffs">{snapshot.handoffs.map(h => <button key={h.id} className="handoff-row" disabled={disabled} title="Open in an account window" onClick={() => send({ type: 'open-handoff', id: h.id })}><Icon name="folder" /><span><strong>{h.title}</strong><small>{new Date(h.createdAt).toLocaleDateString()}</small></span><Icon name="arrow" size={14} /></button>)}</div>
+          <div className="saved-handoffs">{snapshot.handoffs.map(h => <button key={h.id} className="handoff-row" disabled={disabled} title="Continue with a Claude account" onClick={() => send({ type: 'open-handoff', id: h.id })}><Icon name="folder" /><span><strong>{h.title}</strong><small>{new Date(h.createdAt).toLocaleDateString()}</small></span><Icon name="arrow" size={14} /></button>)}</div>
         </> : selected ? <form className="handoff-form" onSubmit={e => { e.preventDefault(); send({ type: 'handoff', id: selected.id, draft }); }}>
           <div className="form-heading"><h2>New handoff</h2><button type="button" className="icon-button" aria-label="Close handoff form" onClick={() => setNewHandoff(false)}><Icon name="close" /></button></div>
           {accounts.length > 1 ? <><label htmlFor="source-account">From account</label><select id="source-account" value={selected.id} onChange={e => setSelectedId(e.target.value)}>{accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></> : <p className="hint source-account">From {selected.name}</p>}
@@ -140,7 +136,7 @@ function App() {
 }
 
 function AccountDetails({ account }: { account: AccountView }) {
-  return <dl className="setup-checks"><div><dt>Environment</dt><dd>{account.setup.prepared ? 'Isolated' : 'Not prepared'}</dd></div><div><dt>Claude Code</dt><dd>{account.setup.officialInstalled ? 'Installed' : 'Not installed'}</dd></div><div><dt>Sign-in</dt><dd>{account.auth.state === 'signed-in' ? 'Verified' : account.auth.state === 'signed-out' ? 'Signed out' : 'Not checked'}</dd></div></dl>;
+  return <dl className="setup-checks"><div><dt>Claude profile</dt><dd>{account.profileReady ? 'Prepared' : 'Created on first use'}</dd></div><div><dt>Sign-in</dt><dd>{account.auth.state === 'signed-in' ? 'Verified' : account.auth.state === 'signed-out' ? 'Signed out' : 'Not checked'}</dd></div></dl>;
 }
 
 createRoot(document.getElementById('root')!).render(<App />);

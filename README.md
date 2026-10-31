@@ -1,66 +1,57 @@
 # Mascot
 
-A separate home for every Claude Code account. Mascot manages manually selected accounts and local handoffs; your conversations remain in **Anthropic’s official Claude Code extension**.
+A local Claude account switcher. Choose an account for **official Claude Code in the same window**, or run official Claude directly in a terminal. No separate editor environment or editor login is required.
 
-Mascot does not use the Claude API, proxy subscription requests, read tokens, or rotate accounts after a usage limit. It is an independent companion, not an Anthropic product. It does not promise immunity from account enforcement.
+Mascot is an independent companion. It has no replacement chat, model API client, subscription proxy, token importer or automatic quota rotation.
 
-## Isolation comes first
+## Use
 
-- Every account gets its own Claude configuration, editor user-data directory, and editor extensions directory under `~/.mascot`.
-- Mascot never installs into your normal editor or changes Claude Desktop, `~/.claude`, `~/.claude.json`, or existing credentials. Install the initial Mascot VSIX yourself in the editor where you want its account picker.
-- There is no automatic login, logout, token import, revocation, update, or cleanup of account data. Sign in yourself inside official Claude in the new window. To choose another browser account, use the official login flow without signing out of your existing Claude apps.
-- Setup is explicit. It installs the official extension and a packaged Mascot companion only in the selected account’s extension directory. Automatic editor/extension updates and interrupted-turn continuation are disabled in these new environments.
-- The original editor’s settings, themes, plugins, and Claude memories are not copied into the new environments. Configure them separately as needed.
-- Authentication metadata is read only when you request it, using the official CLI bundled in the **isolated** official extension. Mascot requires that CLI to report the expected config directory. It never reads the Keychain or credentials files itself.
-- Independent account folders do not isolate project files: stop tools in the old window before continuing the same project in another account, or use separate worktrees.
+Install `artifacts/mascot-0.2.0.vsix` and the official Claude Code extension. Open Mascot and add account labels.
 
-## Requirements
+1. Select a label and click **Use account**.
+2. Stop and close existing Claude chats and background tools. Confirm **Switch and reload**.
+3. The same window reloads and opens official Claude. Complete its official subscription login once for this profile.
+4. Verify the actual identity in official Claude. A label or selected profile is not proof of sign-in. **Check sign-in** requests metadata explicitly; **Check usage** copies `/usage` for you to submit in Claude.
+5. Select another label to switch again. **Use previous Claude profile** restores the original profile pointer.
 
-macOS Apple Silicon, Node.js 22+ for the CLI, and Cursor or VS Code in `/Applications`. Use local, trusted folders. Remote workspaces, Windows, Linux, automatic quota failover, shared OAuth credentials, and embedded replacement chat are outside this release.
+**Open terminal** runs official Claude directly with the chosen profile. It does not change existing terminals, shell startup files or the selected chat profile. The standalone CLI also works without opening an editor.
 
-## Build and package
+## What changes
+
+Each account has a stable Claude configuration directory under `~/.mascot/accounts/<uuid>/claude`. Mascot sets its absolute path in the official extension's `claudeCode.environmentVariables`. It preserves other entries and sets `claudeCode.continueAfterReload` to false to avoid replaying an interrupted step with another identity. These are user settings: other windows sharing them can be affected. Stop old sessions first; running tools cannot be hot-swapped.
+
+The previous config-directory pointer is saved privately, without copying environment secrets or credentials. Restoring keeps automatic continuation disabled. Mascot does not read or modify Claude Desktop, the existing `~/.claude` or `~/.claude.json`, Keychain items or account tokens. Official Claude owns login and credential storage. Old Mascot editor environments are retained but no longer opened or installed by the current UI/CLI.
+
+This uses the documented [official extension environment setting](https://code.claude.com/docs/en/vs-code#extension-settings) and [directory-specific credential storage](https://code.claude.com/docs/en/authentication#credential-management). Real-account behavior must still be checked manually on the installed Claude version; Mascot does not guarantee immunity from account enforcement. Configured provider policies are not bypassed.
+
+## CLI
+
+Node.js 22+, macOS Apple Silicon for this preview:
+
+```sh
+node dist/clawcoon.mjs accounts add "Personal"
+node dist/clawcoon.mjs accounts list
+node dist/clawcoon.mjs prepare ACCOUNT_UUID
+node dist/clawcoon.mjs run ACCOUNT_UUID /absolute/project
+node dist/clawcoon.mjs status ACCOUNT_UUID
+```
+
+`--claude /absolute/executable` selects an installed official binary. Otherwise Mascot looks for an installed Claude executable. Nothing is downloaded. `--data-dir /absolute/empty/directory` chooses a private root. Removing an account deletes only its registry entry, with no logout or file cleanup.
+
+## Handoffs
+
+Save a task summary with optional file references, branch, commit and changed file names. Review it before sharing across personal and organizational accounts. Open it with the chosen profile and manually paste the reference into official Claude. No transcript, live tools, permissions or hidden context is migrated; no prompt is automatically submitted. Profiles share project files: stop other writers or use separate worktrees.
+
+## Development
 
 ```sh
 pnpm install
 pnpm check
+pnpm test:cli
 pnpm package
+pnpm test:extension --packaged
 ```
 
-Install `artifacts/mascot-0.1.6.vsix` using **Extensions → … → Install from VSIX**. This full package contains the small companion installer needed to prepare separate account environments. Nothing is installed or launched by the build or package commands.
+Tests use temporary roots and fake data. The packaged extension test runs the real UI and settings API in temporary editor directories with an offline fake Claude extension. It tests switch/restore and same-window command routing, without real login or model requests. No automated test installs into normal apps.
 
-1. Open Mascot in the Activity Bar and add an account label.
-2. Mascot detects the current editor and displays **Running in Cursor** or **Running in VS Code**. Click **Set up account** and confirm the isolated installation.
-3. Click **Open account**, choose a project, and stop other tools editing it.
-4. In the new window, use Mascot’s **Open Claude** button. Complete official Claude’s onboarding and sign-in using that account’s subscription.
-5. Check the actual account in official Claude. **Check usage** copies `/usage` for you to paste and submit there. No usage polling or model request is sent by Mascot.
-
-The official extension’s login and usage UI remains the authority. A successful setup is not proof of a successful sign-in. The companion refuses to target the original editor’s Claude panel.
-
-## CLI
-
-```sh
-node dist/clawcoon.mjs --help
-node dist/clawcoon.mjs accounts add "Personal"
-node dist/clawcoon.mjs accounts list
-node dist/clawcoon.mjs setup ACCOUNT_UUID --editor cursor
-node dist/clawcoon.mjs open ACCOUNT_UUID /absolute/project --editor cursor
-node dist/clawcoon.mjs status ACCOUNT_UUID --editor cursor
-```
-
-Account IDs are UUIDs printed by `accounts list`. `--data-dir /absolute/empty/directory` chooses another private root; Mascot refuses to adopt a nonempty unowned directory and refuses symlinks inside its managed root. `accounts remove ID` removes only the registry entry: sessions, credentials and editor data are retained and no logout occurs. Close that account’s windows before removing it. There is deliberately no destructive cleanup command.
-
-## Handoffs
-
-Write a short task summary in **Handoffs**. Mascot adds the project path, branch, commit and changed file names using read-only Git commands. Optional reference files are recorded as paths; their contents are not copied. The JSON package is stored privately and opened in the destination account’s editor. Paste the reference prompt into official Claude yourself.
-
-Handoffs are task context, not session migration. They do not transfer hidden reasoning, live tools, temporary permissions, account entitlements or secrets. Review the package before moving work across personal and organizational accounts. If a limit has already been reached, write the summary yourself or attach an existing official export; Mascot does not make a model call to summarize it.
-
-## Validation and limits
-
-`pnpm test` uses temporary directories and fake process runners, covering isolation, symlink rejection, setup/launch argv, credential environment filtering, metadata validation and handoffs. `pnpm test:cli` exercises the built CLI in a temporary root. After packaging, `pnpm test:extension --packaged` installs the actual VSIX and launches its code in an Extension Development Host using temporary editor directories with no official Claude extension, login or model call. The test never installs into your normal editor.
-
-Real multi-account login and the official extension’s Keychain behavior must be verified manually before relying on this preview. No real-account login is part of automated testing. Corporate managed settings are not overridden; incompatible configurations should be handled through your administrator, not bypassed.
-
-See [the implementation report](docs/implementation.md), [the smoke-test checklist](docs/manual-validation.md), and [the original research](docs/research/2026-10-31-account-switching.md).
-
-Brand direction: the supplied raccoon identity (the original Clawcoon reference), now named Mascot, with an orange raccoon mark, charcoal surfaces and warm neutrals. The included SVG is an implementation approximation of that reference. The interface also follows the editor’s light, dark and high-contrast themes.
+See [implementation](docs/implementation.md) and [manual validation](docs/manual-validation.md). The product uses the supplied orange raccoon identity, named Mascot; legacy internal IDs remain stable for existing accounts.

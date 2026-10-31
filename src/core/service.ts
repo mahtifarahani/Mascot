@@ -17,6 +17,44 @@ const Prepared = z.object({ version: z.literal(1), accountId: AccountId, editor:
 
 export class Service {
   constructor(readonly store: Store, readonly assets: string, readonly runner: Runner = run, readonly editorPaths: Record<Editor, string> = EDITORS) {}
+  profilePath(id: string): string {
+    AccountId.parse(id);
+    return this.store.path('accounts', id, 'claude');
+  }
+  async profilePrepared(id: string): Promise<boolean> {
+    await this.store.account(id);
+    const marker = this.store.path('accounts', id, 'claude-prepared.json');
+    const settings = join(this.profilePath(id), 'settings.json');
+    await this.store.guard(marker); await this.store.guard(settings);
+    if (!(await exists(marker)) || !(await exists(settings))) return false;
+    const value = await this.store.read(marker) as { accountId?: string; configDir?: string };
+    return value.accountId === id && value.configDir === this.profilePath(id);
+  }
+  async prepareProfile(id: string): Promise<string> {
+    await this.store.account(id);
+    const config = this.profilePath(id);
+    if (!(await this.profilePrepared(id))) {
+      const settings = join(config, 'settings.json');
+      await this.store.guard(settings);
+      if (await exists(settings)) throw new Error('Unrecognized existing Claude profile settings were left unchanged.');
+      await this.store.directory('accounts', id, 'claude');
+      await this.store.write(settings, { autoInstallIdeExtension: false });
+      await this.store.write(this.store.path('accounts', id, 'claude-prepared.json'), { version: 1, accountId: id, configDir: config });
+    }
+    const settings = await this.store.read(join(config, 'settings.json')) as { env?: Record<string, unknown> };
+    if (settings.env && ('CLAUDE_CONFIG_DIR' in settings.env || CLEARED_CLAUDE_ENV.some(name => !!settings.env?.[name]))) throw new Error('This Claude profile contains an authentication or provider override. Resolve it in official settings before switching.');
+    return config;
+  }
+  async authForProfile(id: string, executable: string): Promise<AuthStatus> {
+    if (!(await this.profilePrepared(id))) return { state: 'unknown', message: 'Use this account once to prepare its Claude profile.' };
+    if (!isAbsolute(executable)) throw new Error('The official Claude executable must be an absolute path.');
+    const config = this.profilePath(id);
+    const result = await this.runner(executable, ['auth', 'status', '--json'], { cwd: config, env: isolatedEnv(config, this.store.root, id) });
+    const parsed = z.object({ loggedIn: z.boolean(), configDirectory: z.string(), email: z.string().max(320).nullable().optional(), authMethod: z.string().max(60).optional() }).safeParse((() => { try { return JSON.parse(result.stdout); } catch { return null; } })());
+    if (!parsed.success || resolve(parsed.data.configDirectory) !== config || ![0, 1].includes(result.code)) return { state: 'unavailable', message: 'Could not verify the selected Claude profile. Check the account in official Claude.' };
+    if (parsed.data.loggedIn && parsed.data.authMethod !== 'claude.ai') return { state: 'unavailable', message: 'This is not a verified subscription sign-in.' };
+    return { state: parsed.data.loggedIn ? 'signed-in' : 'signed-out', email: parsed.data.email ?? undefined, method: parsed.data.authMethod, checkedAt: new Date().toISOString() };
+  }
   paths(id: string, editor: Editor) {
     AccountId.parse(id); Editor.parse(editor);
     const base = this.store.path('accounts', id);

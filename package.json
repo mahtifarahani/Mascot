@@ -1,8 +1,8 @@
 {
   "name": "clawcoon",
   "displayName": "Mascot",
-  "description": "Separate homes for your Claude Code accounts. Official chat, manual switching, local handoffs.",
-  "version": "0.1.6",
+  "description": "Switch Claude accounts in official Claude Code or the current terminal. Local profiles, manual switching, no editor environments.",
+  "version": "0.2.0",
   "publisher": "clawcoon",
   "private": true,
   "license": "UNLICENSED",
@@ -36,7 +36,8 @@
     "virtualWorkspaces": false
   },
   "activationEvents": [
-    "onView:clawcoon.accounts"
+    "onView:clawcoon.accounts",
+    "onStartupFinished"
   ],
   "contributes": {
     "viewsContainers": {

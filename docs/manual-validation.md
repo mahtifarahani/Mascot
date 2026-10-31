@@ -1,44 +1,29 @@
 # Preview acceptance checklist
 
-Do this only when you intend to create and sign in to new, isolated Claude Code environments. Automated tests do not perform these actions.
+## Automated checks
 
-## Build evidence
+Run pnpm check, pnpm test:cli, pnpm package and pnpm test:extension --packaged. All use temporary data/fake identities. The extension test uses an offline fake Claude extension and real native settings; no real login, model call or normal app installation occurs.
 
-```sh
-pnpm check
-pnpm test:cli
-pnpm package
-pnpm test:extension --packaged
-```
+## Official account workflow (manual)
 
-The final command installs only Mascot in temporary directories; it never installs official Claude, uses existing editor directories or signs in. Temporary test directories are removed after execution.
+1. Note the existing Claude Desktop identity. Install Mascot 0.2.0 and ensure official Claude Code is already installed. Use a trusted harmless local project.
+2. Add a label, select Use account and read the switch confirmation. Stop/close old Claude chats and background tools before confirming.
+3. Verify the same window reloads, a fresh official Claude chat opens, and no editor login or separate editor environment appears. Check the absolute selected profile under Account details.
+4. Verify a fresh profile's identity before logging in. If an unexpected existing identity appears, stop and investigate without logging out or replacing credentials.
+5. Sign in through official Claude using the intended subscription. Confirm identity in official Claude and request Check sign-in in Mascot. A selected label alone must not say verified signed in.
+6. Repeat for a second profile. Switch back and confirm the first identity is preserved. No prompt or interrupted step may resume automatically.
+7. Use Check usage and manually submit the copied /usage in official Claude. A limit must never trigger account rotation or a retry.
+8. Use previous Claude profile and verify the original pointer returns. Other env entries must remain; continueAfterReload intentionally remains false.
+9. Verify Claude Desktop and default Claude config files remain unchanged. Remember global Claude settings can affect other windows sharing that settings profile.
 
-## First-account setup
+## Terminal and handoff
 
-1. Note the visible account in your existing Claude Desktop and editor. Do not sign out, export credentials or change its settings.
-2. Install `artifacts/mascot-0.1.6.vsix` through the intended editor’s Install from VSIX action. Open Mascot and add a label such as Personal.
-3. Verify the detected editor shown in Running in and inspect the isolated paths. They must all belong to this account under `~/.mascot`.
-4. Click Set up account and approve installation there. Before opening chat, open Account details and request Check sign-in. A fresh environment should be signed out or explicitly unverified. If it unexpectedly shows your existing account before login, stop and investigate; do not log out or attempt to replace it.
-5. Open the account window with a harmless test project. Complete login using the official Claude UI. Choose the correct browser account without logging out of your existing Claude apps.
-6. Check the account identity in official Claude and in Mascot’s requested sign-in metadata. Use Check usage, paste `/usage` and submit yourself. No extra API key should be needed.
-7. Check your original Claude Desktop and editor again. Their accounts and configuration should remain unchanged.
+Open terminal for each label: official Claude must run directly in the selected config, without opening an editor or changing current shell settings. Existing terminals remain as they were. Verify each identity inside Claude. Stop writers before changing accounts on a shared worktree.
 
-## Second account and handoff
+Create and review a local handoff, choose another account and manually submit its copied reference. Nothing should be sent automatically. Handoffs are summaries/file references, not session migration.
 
-1. Add a second label and prepare/open its separate environment. Confirm it starts independently, before signing in. The first account’s identity should remain unchanged.
-2. Use separate harmless test folders to test concurrent windows. Do not run two writers against the same worktree.
-3. Create a handoff with a title, goal, progress and next step. Optionally choose an existing official export as a reference. Review the saved file for private or organizational information.
-4. Stop the first account’s tools before choosing Open on the handoff and selecting the second account. The new editor should show the handoff file; nothing should be submitted to Claude automatically.
-5. Paste the copied reference prompt into official Claude manually. Verify that branch, commit, changed file names and the next step match the current project.
-6. Close and reopen the editor environment. It should preserve its own sign-in without automatically continuing an interrupted turn.
+## Failure and interface
 
-## Failure and visual checks
+Missing official Claude should show an install instruction, never install automatically. Managed settings or credential/provider overrides should prevent switching. Untrusted/remote contexts should block mutations. Removing an inactive label should retain all files/sign-ins; removing the current chat profile is blocked. Refresh must perform no auth probe, launch or download.
 
-- Missing editor or extension: show an actionable setup message and never open the normal editor’s Claude session as a fallback.
-- Untrusted/remote workspace: account data may be viewed; mutation and process actions remain blocked.
-- Changed isolation settings: launch must fail without repairing or overwriting the changed file.
-- Limit or auth error: the app must not switch accounts, retry using another identity or enable paid overage.
-- Remove from list: no files or credentials should be deleted and no logout should occur. Close the removed account’s windows first.
-- Review the Accounts empty state, multiple accounts, setup errors and Handoffs at narrow sidebar widths and in Light, Dark and High Contrast editor themes. Check keyboard focus and reduced motion.
-
-This is a companion for the official extension, not a guarantee against account suspension and not a sandbox for Claude’s actions in your selected project.
+Check Accounts, expanded details, Handoffs and forms at narrow widths and light/dark/high-contrast themes, keyboard focus and reduced motion. Live reload recovery and real account authentication are manual acceptance items, not covered by the offline fixture.

@@ -139,3 +139,6 @@ textarea { resize: vertical; min-height: 60px; line-height: 1.6; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 body.vscode-high-contrast .account-row.is-selected { border-color: var(--vscode-contrastBorder); }
+
+.quick-actions { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 9px; }
+.restore-button { display: block; margin-top: 16px; }

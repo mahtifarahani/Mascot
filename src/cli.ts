@@ -2,72 +2,76 @@ import { parseArgs } from 'node:util';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
-import { Editor, HandoffDraft } from './protocol';
+import { spawn } from 'node:child_process';
+import { HandoffDraft } from './protocol';
 import { Store, DEFAULT_ROOT } from './core/store';
 import { Service } from './core/service';
+import { isolatedEnv } from './core/process';
+import { findClaudeExecutable } from './core/claude';
 
-const HELP = `Mascot — isolated homes for your Claude Code subscriptions
+const HELP = `Mascot — Claude account switcher
 
   mascot accounts list
   mascot accounts add <name>
   mascot accounts rename <id> <name>
-  mascot accounts remove <id>            Keep all profile data; no logout
-  mascot setup <id> --editor cursor      Install only in the account's environment
-  mascot open <id> [absolute-folder] --editor cursor
-  mascot status <id> --editor cursor     Read official auth metadata only
-  mascot handoff create <id> <folder> --draft /path/to/draft.json
+  mascot accounts remove <id>          Keep Claude profile data; no logout
+  mascot prepare <id>                 Create only this account's Claude profile
+  mascot run <id> [absolute-folder]    Run official Claude in this terminal
+  mascot status <id>                  Read official sign-in metadata
+  mascot handoff create <id> <folder> --draft /absolute/draft.json
   mascot handoff list
-  mascot handoff open <handoff-id> --account <destination-id>
+  mascot handoff open <handoff-id>     Print a reference to use in Claude
 
-Options: --editor cursor|vscode (default: cursor), --data-dir <absolute-path>, --help
+Options: --data-dir <absolute-path>, --claude <absolute-executable>, --help
 Draft JSON: { "title": "...", "goal": "...", "summary": "...", "next": "..." }
 
-Chat and sign-in stay in official Claude Code. No API keys or automatic quota switching.
-Setup requires a packaged release (pnpm package). Nothing installs until setup is requested.
+In the extension, Use account selects the profile for official Claude in the same window.
+The CLI runs Claude directly; it never installs or opens an editor. No API keys or quota rotation.
 `;
 
 try {
   const parsed = parseArgs({ allowPositionals: true, options: {
-    editor: { type: 'string', default: 'cursor' }, 'data-dir': { type: 'string' },
-    draft: { type: 'string' }, account: { type: 'string' }, help: { type: 'boolean' },
+    'data-dir': { type: 'string' }, claude: { type: 'string' }, draft: { type: 'string' }, help: { type: 'boolean' },
   } });
   const [command, action, value, ...rest] = parsed.positionals;
-  if (parsed.values.help || !command) { console.log(HELP); }
+  if (parsed.values.help || !command) console.log(HELP);
   else {
     const store = new Store(parsed.values['data-dir'] ?? DEFAULT_ROOT);
     const service = new Service(store, resolve(dirname(fileURLToPath(import.meta.url)), '..'));
-    const editor = Editor.parse(parsed.values.editor);
     const required = (v: string | undefined, name: string): string => { if (!v) throw new Error(`Missing ${name}. Run mascot --help.`); return v; };
-    const id = () => required(action, 'account ID');
     let result: unknown;
     if (command === 'accounts') {
       if (action === 'list') result = await store.list();
       else if (action === 'add') result = await store.add(required(value, 'account name'));
       else if (action === 'rename') { await store.rename(required(value, 'account ID'), required(rest[0], 'name')); result = { renamed: true }; }
       else if (action === 'remove') { await store.remove(required(value, 'account ID')); result = { removedFromList: true, profileDataKept: true }; }
-      else throw new Error('Unknown accounts command. Run mascot --help.');
-    } else if (command === 'setup') { await service.setup(id(), editor); result = await service.setupStatus(id(), editor); }
-    else if (command === 'open') { await service.launch(id(), editor, value); result = { opened: true }; }
-    else if (command === 'status') result = await service.auth(id(), editor);
-    else if (command === 'handoff') {
+      else throw new Error('Unknown accounts command.');
+    } else if (command === 'prepare' || command === 'setup') {
+      result = { configDir: await service.prepareProfile(required(action, 'account ID')), prepared: true };
+    } else if (command === 'run' || command === 'open') {
+      const id = required(action, 'account ID');
+      const executable = await findClaudeExecutable(parsed.values.claude);
+      const config = await service.prepareProfile(id);
+      const cwd = value ? await service.validateWorkspace(value) : process.cwd();
+      const child = spawn(executable, [], { cwd, env: isolatedEnv(config, store.root, id), stdio: 'inherit' });
+      const code = await new Promise<number>((resolve, reject) => { child.on('close', code => resolve(code ?? 1)); child.on('error', () => reject(new Error('Could not start official Claude.'))); });
+      process.exitCode = code;
+    } else if (command === 'status') {
+      result = await service.authForProfile(required(action, 'account ID'), await findClaudeExecutable(parsed.values.claude));
+    } else if (command === 'handoff') {
       if (action === 'list') result = await service.handoffs();
       else if (action === 'create') {
-        const draft = HandoffDraft.parse(JSON.parse(await readFile(required(parsed.values.draft, '--draft'), 'utf8')));
+        let draft; try { draft = HandoffDraft.parse(JSON.parse(await readFile(required(parsed.values.draft, '--draft'), 'utf8'))); }
+        catch { throw new Error('The handoff draft is missing or invalid.'); }
         result = await service.createHandoff(required(value, 'account ID'), required(rest[0], 'absolute folder'), draft);
       } else if (action === 'open') {
-        const handoffId = required(value, 'handoff ID');
-        const account = required(parsed.values.account, '--account');
-        const handoff = (await service.handoffs()).find(h => h.id === handoffId);
-        if (!handoff) throw new Error('Handoff not found.');
-        await service.launch(account, editor, handoff.workspace, handoffId);
-        result = { opened: true, promptToCopy: await service.handoffText(handoffId) };
+        const id = required(value, 'handoff ID');
+        result = { path: await service.handoffPath(id), promptToCopy: await service.handoffText(id) };
       } else throw new Error('Unknown handoff command.');
     } else throw new Error('Unknown command. Run mascot --help.');
-    console.log(JSON.stringify(result, null, 2));
+    if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   }
 } catch (error) {
-  const message = error instanceof Error ? error.message : 'The action failed.';
-  // Zod errors contain only our schema inputs; subprocess output is never forwarded.
-  console.error(`Mascot: ${message}`);
+  console.error(`Mascot: ${error instanceof Error ? error.message : 'The action failed.'}`);
   process.exitCode = 1;
 }
