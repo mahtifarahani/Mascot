@@ -1,0 +1,9 @@
+node_modules/
+dist/
+artifacts/
+bootstrap/
+coverage/
+.DS_Store
+*.log
+.env*
+.vscode-test/

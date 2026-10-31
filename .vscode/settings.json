@@ -1,0 +1,23 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#8c3a14",
+    "activityBar.foreground": "#fff6ef",
+    "activityBar.inactiveForeground": "#fff6efb3",
+    "activityBar.activeBorder": "#ffc49a",
+    "activityBarBadge.background": "#ff9a46",
+    "activityBarBadge.foreground": "#101619",
+    "titleBar.activeBackground": "#8c3a14",
+    "titleBar.activeForeground": "#fff6ef",
+    "titleBar.inactiveBackground": "#5a240e",
+    "titleBar.inactiveForeground": "#fff6ef",
+    "tab.activeBackground": "#8c3a14",
+    "tab.activeForeground": "#fff6ef",
+    "tab.inactiveBackground": "#5a240e",
+    "tab.inactiveForeground": "#fff6ef",
+    "tab.hoverBackground": "#3f180a",
+    "statusBar.background": "#8c3a14",
+    "statusBar.foreground": "#fff6ef",
+    "statusBarItem.hoverBackground": "#5a240e"
+  },
+  "cSpell.words": ["clawcoon"]
+}

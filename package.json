@@ -1,0 +1,100 @@
+{
+  "name": "clawcoon",
+  "displayName": "Mascot",
+  "description": "Separate homes for your Claude Code accounts. Official chat, manual switching, local handoffs.",
+  "version": "0.1.6",
+  "publisher": "clawcoon",
+  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mahtifarahani/Mascot.git"
+  },
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "vscode": "^1.100.0",
+    "node": ">=22"
+  },
+  "main": "./dist/extension.cjs",
+  "icon": "media/icon.png",
+  "bin": {
+    "mascot": "dist/clawcoon.mjs",
+    "clawcoon": "dist/clawcoon.mjs"
+  },
+  "extensionKind": [
+    "ui"
+  ],
+  "categories": [
+    "Other"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Account information is visible; setup, launching, and handoffs require workspace trust."
+    },
+    "virtualWorkspaces": false
+  },
+  "activationEvents": [
+    "onView:clawcoon.accounts"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "clawcoon",
+          "title": "Mascot",
+          "icon": "media/mark.svg"
+        }
+      ]
+    },
+    "views": {
+      "clawcoon": [
+        {
+          "type": "webview",
+          "id": "clawcoon.accounts",
+          "name": "Mascot"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "clawcoon.open",
+        "title": "Mascot: Open Accounts"
+      },
+      {
+        "command": "clawcoon.openClaude",
+        "title": "Mascot: Open Official Claude Chat"
+      },
+      {
+        "command": "clawcoon.usage",
+        "title": "Mascot: Check Usage in Claude"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "pnpm build && node scripts/package.mjs",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "test:extension": "node scripts/test-extension.mjs",
+    "test:cli": "node scripts/test-cli.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/vscode": "1.100.0",
+    "@vscode/vsce": "^3.7.0",
+    "esbuild": "^0.25.0",
+    "sharp": "^0.34.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
