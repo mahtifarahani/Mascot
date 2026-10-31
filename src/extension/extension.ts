@@ -8,8 +8,14 @@ import { Service } from '../core/service';
 import { Binding, type SettingsPort } from '../core/binding';
 import { CLEARED_CLAUDE_ENV, isolatedEnv } from '../core/process';
 import { Request, type AuthStatus, type Snapshot } from '../protocol';
+import { accountHue, hslToHex } from '../palette';
 
 const Variables = z.array(z.object({ name: z.string(), value: z.string() }));
+// Last explicit sign-in check per account. Allowlisted metadata only; refreshing or reloading never re-probes.
+const SavedAuth = z.record(z.string().uuid(), z.object({
+  state: z.enum(['signed-in', 'signed-out', 'unavailable']), email: z.string().max(320).optional(), method: z.string().max(60).optional(),
+  checkedAt: z.string().datetime().optional(), message: z.string().max(300).optional(),
+}));
 export function createClaudeSettingsPort(): SettingsPort {
   return {
     read() {
@@ -37,6 +43,7 @@ const BUSY: Record<Request['type'], string> = {
 };
 class AccountsPanel implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
+  private readonly statusItem = vscode.window.createStatusBarItem('mascot.account', vscode.StatusBarAlignment.Left, 100);
   private busy?: string;
   private notice?: string;
   private error?: string;
@@ -51,6 +58,16 @@ class AccountsPanel implements vscode.WebviewViewProvider {
     this.store = new Store(testRoot ?? process.env.MASCOT_ROOT ?? DEFAULT_ROOT);
     this.service = new Service(this.store, context.extensionUri.fsPath);
     this.binding = new Binding(this.store, createClaudeSettingsPort(), context.globalStorageUri.fsPath);
+    this.statusItem.name = 'Mascot Claude account';
+    this.statusItem.command = 'mascot.open';
+    context.subscriptions.push(this.statusItem);
+    const savedAuth = SavedAuth.safeParse(context.globalState.get('authStatuses'));
+    if (savedAuth.success) for (const [id, status] of Object.entries(savedAuth.data)) this.statuses.set(id, status);
+  }
+  private async rememberAuth(id: string, status?: AuthStatus): Promise<void> {
+    if (status) this.statuses.set(id, status); else this.statuses.delete(id);
+    const remembered = Object.fromEntries([...this.statuses].filter(([, s]) => s.state !== 'unknown'));
+    await this.context.globalState.update('authStatuses', SavedAuth.safeParse(remembered).success ? remembered : undefined);
   }
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     this.view = view;
@@ -103,7 +120,24 @@ class AccountsPanel implements vscode.WebviewViewProvider {
     try { await access(executable); } catch { throw new Error('This official Claude Code build has no supported native executable. Use its own chat panel.'); }
     return executable;
   }
+  // Reads the selected profile pointer and the local registry only; it never probes auth or launches anything.
+  async updateStatus(): Promise<void> {
+    try {
+      const id = await this.currentAccount();
+      const account = id ? (await this.store.list()).find(a => a.id === id) : undefined;
+      const auth = id ? this.statuses.get(id) : undefined;
+      this.statusItem.text = `$(account) Claude: ${account?.name ?? 'default profile'}`;
+      // Text colour only: status bar backgrounds are reserved for warning/error. Pick a tone that reads on the current theme.
+      const light = [vscode.ColorThemeKind.Light, vscode.ColorThemeKind.HighContrastLight].includes(vscode.window.activeColorTheme.kind);
+      this.statusItem.color = account ? hslToHex(accountHue(account.id), light ? .7 : .9, light ? .3 : .78) : undefined;
+      this.statusItem.tooltip = account
+        ? `Mascot: new Claude sessions in this editor use "${account.name}".\n${auth?.state === 'signed-in' ? `Last verified sign-in: ${auth.email ?? 'signed in'}${auth.checkedAt ? ` (${new Date(auth.checkedAt).toLocaleString()})` : ''}.` : 'Sign-in not verified. Use Check sign-in in Mascot.'}\nClick to open Mascot.`
+        : 'Mascot: Claude is not using a Mascot account profile (it uses its default or another configured profile).\nClick to open Mascot.';
+      this.statusItem.show();
+    } catch { this.statusItem.text = '$(account) Claude: unknown'; this.statusItem.tooltip = 'Mascot could not read the Claude profile setting. Click to open Mascot.'; this.statusItem.show(); }
+  }
   async publish(): Promise<void> {
+    await this.updateStatus();
     if (!this.view) return;
     try {
       const current = await this.currentAccount();
@@ -187,7 +221,7 @@ class AccountsPanel implements vscode.WebviewViewProvider {
         case 'remove': {
           const account = await this.store.account(request.id);
           if (await this.currentAccount() === request.id) throw new Error('Choose another Claude profile before removing this label.');
-          if (await vscode.window.showWarningMessage(`Remove ${account.name} from the list? Claude profile files and sign-ins will be kept.`, { modal: true }, 'Remove from list')) await this.store.remove(request.id);
+          if (await vscode.window.showWarningMessage(`Remove ${account.name} from the list? Claude profile files and sign-ins will be kept.`, { modal: true }, 'Remove from list')) { await this.store.remove(request.id); await this.rememberAuth(request.id); }
           break;
         }
         case 'switch': await this.switchAccount(request.id); break;
@@ -200,7 +234,7 @@ class AccountsPanel implements vscode.WebviewViewProvider {
           }
           break;
         case 'terminal': await this.terminal(request.id); break;
-        case 'auth': this.statuses.set(request.id, await this.service.authForProfile(request.id, await this.officialCli())); break;
+        case 'auth': await this.rememberAuth(request.id, await this.service.authForProfile(request.id, await this.officialCli())); break;
         case 'claude': await this.openClaude(); break;
         case 'usage': await this.openClaude(true); break;
         case 'handoff': {
@@ -236,6 +270,9 @@ export function activate(context: vscode.ExtensionContext): { refresh(): Promise
   context.subscriptions.push(vscode.commands.registerCommand('mascot.openClaude', () => safeOpen(false)));
   context.subscriptions.push(vscode.commands.registerCommand('mascot.usage', () => safeOpen(true)));
   context.subscriptions.push(vscode.workspace.onDidGrantWorkspaceTrust(() => panel.publish()));
+  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration('claudeCode.environmentVariables')) void panel.publish(); }));
+  context.subscriptions.push(vscode.window.onDidChangeActiveColorTheme(() => { void panel.updateStatus(); }));
+  void panel.updateStatus();
   void panel.finishPendingSwitch();
   return { refresh: () => panel.publish(), waitForPanelReady: () => panel.waitForPanelReady() };
 }

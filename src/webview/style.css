@@ -56,9 +56,6 @@ nav > .nav-add { margin: -3px 0 6px auto; padding: 5px; }
 .account-row:hover { background: var(--input); }
 .account-row.is-selected { background: color-mix(in srgb, var(--accent) 8%, var(--bg)); border-color: color-mix(in srgb, var(--accent) 38%, transparent); }
 .avatar { position: relative; display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px; font-size: 13px; font-weight: 600; --hue: 22; background: hsl(var(--hue) 45% 28%); color: hsl(var(--hue) 90% 80%); }
-.avatar-1 { --hue: 172; }
-.avatar-2 { --hue: 265; }
-.avatar-3 { --hue: 45; }
 body.vscode-light .avatar { background: hsl(var(--hue) 70% 88%); color: hsl(var(--hue) 60% 26%); }
 .dot { position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg); background: var(--muted); }
 .account-row:hover .dot { border-color: var(--input); }

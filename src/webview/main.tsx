@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { createRoot } from 'react-dom/client';
+import { accountHue } from '../palette';
 import type { AccountView, HandoffDraft, Request, Snapshot } from '../protocol';
 import './style.css';
 
@@ -141,7 +142,7 @@ function App() {
           <button className="primary" disabled={disabled} onClick={showAdd}><Icon name="plus" /> Add account</button>
         </div>}
 
-        {accounts.length > 0 && <div className="account-list" role="radiogroup" aria-label="Accounts" ref={group} onKeyDown={moveSelection}>{accounts.map((account, i) => {
+        {accounts.length > 0 && <div className="account-list" role="radiogroup" aria-label="Accounts" ref={group} onKeyDown={moveSelection}>{accounts.map(account => {
           const status = standing(account);
           const active = account.id === selected?.id;
           return <button
@@ -153,7 +154,7 @@ function App() {
             className={`account-row ${active ? 'is-selected' : ''}`}
             onClick={() => chooseAccount(account.id)}
           >
-            <span className={`avatar avatar-${i % 4}`}>{[...account.name][0]?.toUpperCase()}<span className={`dot ${status.tone}`} role="img" aria-label={status.label} title={status.label} /></span>
+            <span className="avatar" style={{ '--hue': accountHue(account.id) } as CSSProperties}>{[...account.name][0]?.toUpperCase()}<span className={`dot ${status.tone}`} role="img" aria-label={status.label} title={status.label} /></span>
             <span className="account-info"><strong>{account.name}</strong><span>{status.detail}</span></span>
             {account.current && <span className="current-label">Current</span>}
           </button>;
@@ -170,7 +171,7 @@ function App() {
             <button className="secondary" disabled={!canLaunch || !selected.profileReady} title={selected.profileReady ? 'Ask official Claude who is signed in' : 'The profile is created the first time you use this account'} onClick={() => send({ type: 'auth', id: selected.id })}><Icon name="check" size={14} />Check sign-in</button>
             {selected.current && <button className="secondary" disabled={!canLaunch} title="Copies /usage for you to paste into Claude" onClick={() => send({ type: 'usage' })}><Icon name="gauge" size={14} />Usage</button>}
           </div>
-          {selected.auth.checkedAt && <p className="hint">Sign-in checked {new Date(selected.auth.checkedAt).toLocaleString()}.</p>}
+          {selected.auth.checkedAt && <p className="hint">Last checked {new Date(selected.auth.checkedAt).toLocaleString()}. Check again only if you signed in or out since.</p>}
           {selected.auth.state === 'unavailable' && selected.auth.message && <p className="hint">{selected.auth.message}</p>}
 
           <details className="account-details">
