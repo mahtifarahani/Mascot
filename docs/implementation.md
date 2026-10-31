@@ -57,3 +57,5 @@ A status bar item (bottom left) shows `Claude: <label>` for the account whose pr
 ## Automated release preparation 0.2.2
 
 Version 0.2.2 includes the committed panel and status bar changes, preserving account paths and the Mascot.mascot identity. This is the first new version intended for the tag-based publishing workflow; 0.2.1 is already published and must not be reused. GitHub confirmed OVSX_PAT was added through Chrome. Local TypeScript, 37 regression tests, CLI smoke, VSIX packaging, packaged extension smoke and release-note validation passed for 0.2.2. End-to-end publication verification is in progress. No normal editor installation is part of this release task.
+
+Initial CI run 41193651665 passed validation, install, checks, CLI smoke, packaging, checksums and GitHub Release creation. The Open VSX step failed before contacting the registry: pnpm 12 dlx rejected ignored native dependency builds. The workflow now runs the pinned uploader through npm exec with lifecycle scripts disabled; existing VSIX files require no native signing/keychain helpers. Manual dispatch retries the existing tag with the corrected workflow and retains its GitHub Release.

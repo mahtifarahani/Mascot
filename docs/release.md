@@ -16,6 +16,8 @@ A normal branch push does not release an extension. Never move an existing tag o
 
 The Release workflow's manual dispatch accepts an existing tag for retry. It retains existing GitHub Release assets and skips already-published registry versions. No tokens are printed or committed. Installer, login, account switching and real model calls are not part of release CI.
 
+The Open VSX CLI is pinned to 1.2.0 and launched with `npm exec --yes --ignore-scripts --package=ovsx@1.2.0 -- ovsx`. It uploads an already-built VSIX using the environment token; native signing/keychain dependency build scripts are unnecessary and disabled. `pnpm dlx` under pnpm 12 rejected those ignored transitive builds in the initial 0.2.2 run, after GitHub Release creation had succeeded. Retry via manual dispatch from the updated main workflow without moving the existing version tag.
+
 ## Registry configuration
 
 On 2026-10-31 Chrome showed Mascot.mascot 0.2.1 as Public. Namespace Mascot is unverified; the current account cannot register an Open VSX trusted publisher for it, because trusted publishing requires namespace ownership. CatHouse already has an OIDC registration, although its checked-in release workflow still uses OVSX_PAT. Mascot therefore uses the same token-based workflow currently present in CatHouse. The user-supplied publishing token was stored through Chrome in GitHub Actions as OVSX_PAT; GitHub confirmed the secret was added. Namespace ownership verification and Marketplace publication are separate tasks.

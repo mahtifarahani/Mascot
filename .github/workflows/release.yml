@@ -64,4 +64,4 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${OVSX_PAT:-}" || { echo '::error::Add the OVSX_PAT repository secret to enable Open VSX publishing.'; exit 1; }
-          pnpm dlx ovsx@1.2.0 publish --packagePath artifacts/*.vsix --skip-duplicate
+          npm exec --yes --ignore-scripts --package=ovsx@1.2.0 -- ovsx publish --packagePath artifacts/*.vsix --skip-duplicate
