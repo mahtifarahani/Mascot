@@ -2,7 +2,7 @@
   "name": "mascot",
   "displayName": "Mascot",
   "description": "Switch Claude accounts in official Claude Code or the current terminal. Local profiles, manual switching, no editor environments.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "Mascot",
   "private": true,
   "license": "UNLICENSED",

@@ -1,4 +1,4 @@
-# Mascot 0.2.1 implementation report
+# Mascot 0.2.2 implementation report
 
 ## Release automation
 
@@ -53,3 +53,7 @@ The sidebar panel (`src/webview`) now shows a per-account status dot and chip (s
 The last explicit Check sign-in result per account (state, email, method, time; no tokens) is remembered in the extension's global state so a window reload after switching does not reset every account to Not checked. It is never refreshed automatically: refresh, reload and switching still perform no auth probe, and the panel shows when each result was last checked. Removing a label forgets its remembered result.
 
 A status bar item (bottom left) shows `Claude: <label>` for the account whose profile the official extension is currently set to use, or `default profile` when no Mascot profile is selected. It is derived from the same local setting and registry as the panel, updates when that setting changes, opens Mascot on click, and never probes auth. The tooltip says the sign-in is unverified unless an explicit check was remembered. Each account has one colour derived from its id (`src/palette.ts`), used for the panel avatar and the status bar text, so it stays the same when the list changes. The status bar uses text colour only and adjusts lightness for light and dark themes.
+
+## Automated release preparation 0.2.2
+
+Version 0.2.2 includes the committed panel and status bar changes, preserving account paths and the Mascot.mascot identity. This is the first new version intended for the tag-based publishing workflow; 0.2.1 is already published and must not be reused. GitHub confirmed OVSX_PAT was added through Chrome. Local TypeScript, 37 regression tests, CLI smoke, VSIX packaging, packaged extension smoke and release-note validation passed for 0.2.2. End-to-end publication verification is in progress. No normal editor installation is part of this release task.

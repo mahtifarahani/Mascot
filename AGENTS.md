@@ -21,4 +21,4 @@ Mascot is a local account switcher for **official Claude Code chat**. It has no 
 
 `pnpm install`; `pnpm check`; `pnpm test:cli`; `pnpm package`; `pnpm test:extension --packaged`.
 
-The extension test starts installed VS Code with temporary user-data/extensions directories and an offline fake Claude extension. `artifacts/mascot-0.2.1.vsix` is the installable package; there is no bootstrap installation flow. Update the implementation report when behavior or validation changes. Do not overwrite unrelated local changes, including `.vscode` settings.
+The extension test starts installed VS Code with temporary user-data/extensions directories and an offline fake Claude extension. `artifacts/mascot-0.2.2.vsix` is the installable package; there is no bootstrap installation flow. Update the implementation report when behavior or validation changes. Do not overwrite unrelated local changes, including `.vscode` settings.

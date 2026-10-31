@@ -6,7 +6,7 @@ Mascot is an independent companion. It has no replacement chat, model API client
 
 ## Use
 
-Install `artifacts/mascot-0.2.1.vsix` and the official Claude Code extension. Open Mascot and add account labels.
+Install `artifacts/mascot-0.2.2.vsix` and the official Claude Code extension. Open Mascot and add account labels.
 
 1. Select a label and click **Use account**.
 2. Stop and close existing Claude chats and background tools. Confirm **Switch and reload**.
