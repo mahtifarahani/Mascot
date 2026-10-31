@@ -21,3 +21,9 @@ The Open VSX CLI is pinned to 1.2.0 and launched with `npm exec --yes --ignore-s
 ## Registry configuration
 
 On 2026-10-31 Chrome showed Mascot.mascot 0.2.1 as Public. Namespace Mascot is unverified; the current account cannot register an Open VSX trusted publisher for it, because trusted publishing requires namespace ownership. CatHouse already has an OIDC registration, although its checked-in release workflow still uses OVSX_PAT. Mascot therefore uses the same token-based workflow currently present in CatHouse. The user-supplied publishing token was stored through Chrome in GitHub Actions as OVSX_PAT; GitHub confirmed the secret was added. Namespace ownership verification and Marketplace publication are separate tasks.
+
+## Verified release
+
+Release v0.2.2 was created by GitHub Actions and the corrected manual-dispatch run [41193801211](https://github.com/mahtifarahani/Mascot/actions/runs/41193801211) completed with Success, including Open VSX publishing. The [GitHub Release](https://github.com/mahtifarahani/Mascot/releases/tag/v0.2.2) provides mascot-0.2.2.vsix and SHA256SUMS. Local validation passed TypeScript, 37 regression tests, CLI smoke and the packaged offline extension smoke. No real account login, account switch or normal editor installation was performed for publication.
+
+Open VSX owner settings verified Mascot.mascot latest version 0.2.2 with Status Public, listing both 0.2.2 and the retained 0.2.1. The uploader log confirms Published Mascot.mascot v0.2.2. Namespace verification remains separate from this successful publication.
