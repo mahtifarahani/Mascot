@@ -58,4 +58,6 @@ See [implementation](docs/implementation.md) and [manual validation](docs/manual
 
 ## Registry identity
 
+Releases use version tags: GitHub Actions builds the VSIX and publishes stable versions to Open VSX once the publishing secret is configured. Ordinary code pushes do not release an update. See [publishing](docs/release.md).
+
 The Open VSX publisher namespace is `Mascot`; the extension ID is `Mascot.mascot`. Disable earlier preview extensions before installing this build to avoid duplicate account managers. Existing account config paths remain unchanged; no sign-ins are copied or migrated.

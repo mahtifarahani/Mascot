@@ -1,5 +1,11 @@
 # Mascot 0.2.1 implementation report
 
+## Release automation
+
+Added `.github/workflows/release.yml`, `scripts/release-notes.mjs`, a dated changelog and `docs/release.md`. A matching version tag builds and checks the extension, creates a GitHub Release with VSIX/checksums, and publishes stable versions to Open VSX using OVSX_PAT. Prereleases stay on GitHub and Marketplace remains manual. This does not change runtime or account behavior. Chrome shows the existing registry version as Public, but the Mascot namespace remains unverified and cannot yet use trusted publishing. Secret setup and an end-to-end release remain pending; no successful registry CI publication is claimed.
+
+Local verification passed: TypeScript, all 35 regression tests, CLI smoke, package build, and packaged extension smoke using temporary directories/offline fake Claude. Temporary-fixture release guard checks passed for a matching version, mismatched version, invalid ref, empty notes and changelog section boundaries. No tag was created and no existing registry version was replaced.
+
 Date: 2026-10-31.
 
 ## Result
@@ -43,4 +49,6 @@ Open VSX namespace Mascot was created under the user account. The incorrectly na
 ## Panel UI/UX pass
 
 The sidebar panel (`src/webview`) now shows a per-account status dot and chip (signed in, signed out, not checked, check failed); only an explicit sign-in check can say Signed in, and a selected profile is labelled as unverified. The selected account has one action card (Use account / Open Claude, Terminal, Check sign-in, Usage) with a reload hint. Rename, folder and Remove sit under More. Accounts use a radio group with arrow-key navigation, the tabs use tablist semantics, and Escape closes forms. Notices and errors are dismissible, per-action busy messages replace "Working…", a missing official extension is a top-level warning, and the empty state explains the three setup steps. A newly added account is selected automatically, a saved handoff closes and clears its form, and the tab, selection and handoff draft survive panel hides and reloads through webview state (the panel only stores local form text, never credentials). Light, dark and high-contrast themes use VS Code colour tokens; text is at least 11px. No request, permission or isolation behavior changed. Checked at 300px in a local harness with dark/light tokens; the packaged smoke test and the 35 unit tests still pass. Real-editor theme and screen-reader checks remain manual.
+
+The last explicit Check sign-in result per account (state, email, method, time; no tokens) is remembered in the extension's global state so a window reload after switching does not reset every account to Not checked. It is never refreshed automatically: refresh, reload and switching still perform no auth probe, and the panel shows when each result was last checked. Removing a label forgets its remembered result.
 
