@@ -30,6 +30,11 @@ export function createClaudeSettingsPort(): SettingsPort {
 }
 
 type Pending = { id?: string; handoff?: string };
+const BUSY: Record<Request['type'], string> = {
+  refresh: 'Refreshing…', add: 'Adding account…', rename: 'Saving name…', remove: 'Removing label…', switch: 'Waiting for your confirmation…',
+  restore: 'Waiting for your confirmation…', terminal: 'Opening terminal…', auth: 'Asking official Claude for sign-in status…',
+  claude: 'Opening Claude…', usage: 'Opening Claude…', handoff: 'Saving handoff…', 'open-handoff': 'Waiting for your choice…',
+};
 class AccountsPanel implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
   private busy?: string;
@@ -173,7 +178,7 @@ class AccountsPanel implements vscode.WebviewViewProvider {
   private async handle(request: Request): Promise<void> {
     if (request.type === 'refresh') { await this.publish(); return; }
     if (this.busy) return;
-    this.error = undefined; this.notice = undefined; this.busy = 'Working…'; await this.publish();
+    this.error = undefined; this.notice = undefined; this.busy = BUSY[request.type]; await this.publish();
     try {
       this.requireTrust();
       switch (request.type) {
